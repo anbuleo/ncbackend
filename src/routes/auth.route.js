@@ -21,6 +21,7 @@ router.get("/google/failure", (req, res) => {
   router.post("/signin", authController.signIn);
       router.post("/forget", authController.forgotPasswordLink);
       router.post("/reset/:token", authController.resetPasswordWithToken);
+      router.post("/firebase", authController.firebaseOauth);
 
 
 
