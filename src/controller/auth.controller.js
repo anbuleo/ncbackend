@@ -11,7 +11,7 @@ let SALT = process.env.SALT
 
 const signUp = async (req, res,next) => {    
     try {
-        const { name, email, password, mobile, address } = req.body;
+        const { !name, email, password, mobile, address } = req.body;
 
         if (name  || !email || !password || !mobile ) {
             return next(errorHandler(400, 'All fields are required'));
