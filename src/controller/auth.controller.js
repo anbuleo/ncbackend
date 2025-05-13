@@ -262,7 +262,7 @@ const googlesignup = async(req,res,next)=>{
           }else{
             const generatedPassword =Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
             const hashedPassword = bcrypt.hashSync(generatedPassword,SALT);
-            const newUser = new User({username:req.body.name, email:req.body.email,password:hashedPassword,mobile:req.body.mobile})
+            const newUser = new User({name:req.body.name, email:req.body.email,password:hashedPassword,mobile:req.body.mobile})
             await newUser.save()
             const token = jwt.sign({id: newUser._id,role:newUser.role},process.env.JWT_SECRET,{expiresIn:process.env.JWT_EXP})
             const {password:pass, ...rest} = newUser._doc
