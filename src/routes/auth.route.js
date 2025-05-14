@@ -1,6 +1,7 @@
 import express from "express";
 import authController from "../controller/auth.controller.js";
 import passport from 'passport'
+import {verifyUser} from '../utils/verifyUser.js'
 
 const router = express.Router();
 
@@ -22,6 +23,7 @@ router.get("/google/failure", (req, res) => {
       router.post("/forget", authController.forgotPasswordLink);
       router.post("/reset/:token", authController.resetPasswordWithToken);
       router.post("/firebase", authController.firebaseOauth);
+      router.get("/verify",verifyUser,authController.verifytokenreq)
 
 
 

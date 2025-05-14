@@ -281,6 +281,16 @@ const googlesignup = async(req,res,next)=>{
           next(error)
         }
       };
+
+      const verifytokenreq = async (req,res,next)=>{
+        try{
+          res.status(200).json({
+            message:'Token verified'
+          })
+        }catch(error){
+          next(erorr)
+        }
+      }
       
       
 export default {
@@ -291,5 +301,6 @@ export default {
     forgotPasswordLink,
     resetPasswordWithToken,
     signIn,
-    firebaseOauth
+    firebaseOauth,
+    verifytokenreq
 }
