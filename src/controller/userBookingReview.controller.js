@@ -5,7 +5,7 @@ import { errorHandler } from '../utils/errorHandler.js';
 import nodemailer from 'nodemailer';
 import fetch from 'node-fetch'
 import generateOTP from '../utils/generateOtp.js';
-import admin from '../utils/firebaseAdmin.js';
+// import admin from '../utils/firebaseAdmin.js';
 
 
 
@@ -246,29 +246,29 @@ const getAddressFromCoords = async ([lng, lat]) => {
     return data;
   };
 
-  const confirmationFCM = async (req, res) => {
-    const { fcmToken, title, body } = req.body;
+  // const confirmationFCM = async (req, res) => {
+  //   const { fcmToken, title, body } = req.body;
   
-    if (!fcmToken || !title || !body) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
+  //   if (!fcmToken || !title || !body) {
+  //     return res.status(400).json({ message: "Missing required fields" });
+  //   }
   
-    const message = {
-      notification: {
-        title,
-        body,
-      },
-      token: fcmToken,
-    };
+  //   const message = {
+  //     notification: {
+  //       title,
+  //       body,
+  //     },
+  //     token: fcmToken,
+  //   };
   
-    try {
-      const response = await admin.messaging().send(message);
-      res.status(200).json({ message: "Notification sent", response });
-    } catch (error) {
-      console.error("FCM Error:", error);
-      res.status(500).json({ message: "Failed to send notification", error });
-    }
-  }
+  //   try {
+  //     const response = await admin.messaging().send(message);
+  //     res.status(200).json({ message: "Notification sent", response });
+  //   } catch (error) {
+  //     console.error("FCM Error:", error);
+  //     res.status(500).json({ message: "Failed to send notification", error });
+  //   }
+  // }
   
   
 
@@ -290,5 +290,5 @@ export default {
     createReview,
     createBookings,
     confirmBookings,
-    confirmationFCM
+    
 }

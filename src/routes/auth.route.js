@@ -17,7 +17,7 @@ router.get("/google/failure", (req, res) => {
 
 
   router.post("/send-otp", authController.sendOTP);
-  router.post("/verify-otp", authController.verifyOTP);
+//   router.post("/verify-otp", authController.verifyOTP);
   router.post("/signin", authController.signIn);
       router.post("/forget", authController.forgotPasswordLink);
       router.post("/reset/:token", authController.resetPasswordWithToken);
