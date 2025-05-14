@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.post('/create',verifyUser,userBookingReviewController.createBookings)
 router.put('/confirm',verifyUser,userBookingReviewController.confirmBookings)
+router.get('/getpending',verifyUser,userBookingReviewController.getlatestBooking)
 // router.post('/confirmfcm',userBookingReviewController.confirmationFCM)
 
 // router.use('/review',reviewRoute)

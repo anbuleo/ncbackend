@@ -39,9 +39,9 @@ const createReview = async (req,res,next)=>{
 
 const createBookings = async (req, res, next) => {
   try {
-    const { pickupLocation, dropLocation, name, mobile } = req.body;
+    const { pickupLocation, dropLocation, name, mobile,currentDate,time,amPm,km,fare } = req.body;
 
-    if (!pickupLocation || !dropLocation || !Array.isArray(pickupLocation) || !Array.isArray(dropLocation)) {
+    if (!pickupLocation || !dropLocation || !name || !mobile || !km || !fare) {
       return next(errorHandler(400, 'Pickup and Drop locations must be [lng, lat] arrays'));
     }
 
@@ -55,41 +55,41 @@ const createBookings = async (req, res, next) => {
     const vehicle = vehicleList[0]; // Safely extract the only vehicle
 
     // Distance calculation using OpenRouteService
-    const orsUrl = 'https://api.openrouteservice.org/v2/directions/driving-car/json';
-    const orsRes = await fetch(orsUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': process.env.ORS_API_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        coordinates: [pickupLocation, dropLocation]
-      })
-    });
+    // const orsUrl = 'https://api.openrouteservice.org/v2/directions/driving-car/json';
+    // const orsRes = await fetch(orsUrl, {
+    //   method: 'POST',
+    //   headers: {
+    //     'Authorization': process.env.ORS_API_KEY,
+    //     'Content-Type': 'application/json'
+    //   },
+    //   body: JSON.stringify({
+    //     coordinates: [pickupLocation, dropLocation]
+    //   })
+    // });
 
-    const orsData = await orsRes.json();
+    // const orsData = await orsRes.json();
 
-    if (!orsData?.routes?.[0]?.summary?.distance) {
-      return next(errorHandler(500, 'Could not calculate route distance.'));
-    }
+    // if (!orsData?.routes?.[0]?.summary?.distance) {
+    //   return next(errorHandler(500, 'Could not calculate route distance.'));
+    // }
 
-    const distanceInKm = orsData.routes[0].summary.distance / 1000;
-    const totalPrice = distanceInKm * vehicle.pricePerKm;
+    // const distanceInKm = orsData.routes[0].summary.distance / 1000;
+    // const totalPrice = distanceInKm * vehicle.pricePerKm;
 
     const booking = await Booking.create({
       user: userId,
       vehicle: vehicle._id,
       pickupLocation,
       dropLocation,
-      distance: distanceInKm,
-      totalPrice,
+      distance: km,
+      totalPrice:fare,
       name,
-      mobile
+      mobile,
+      bookingDate: currentDate.concat(' ',time,' ',amPm),
     });
 
     res.status(201).json({
-      message: 'Booking created successfully',
-      booking
+      message: 'Booking created successfully'
     });
 
   } catch (error) {
@@ -107,9 +107,9 @@ const confirmBookings = async(req,res,next)=>{
 
         if(!bookings) return next(errorHandler(404,'Booking not found'))
 
-        let {pickupLocation, dropLocation, name, mobile} = bookings
+        let {pickupLocation, dropLocation, name, mobile, distance, totalPrice,bookingDate} = bookings
     
-        if (!pickupLocation || !dropLocation || !Array.isArray(pickupLocation) || !Array.isArray(dropLocation)) {
+        if (!pickupLocation || !dropLocation || !name || !mobile ) {
           return next(errorHandler(400, 'Pickup and Drop locations must be [lng, lat] arrays'));
         }
     
@@ -117,25 +117,25 @@ const confirmBookings = async(req,res,next)=>{
         if (!vehicle) return next(errorHandler(404, 'No vehicle available'));
     
         // 🔁 Get distance from ORS
-        const orsUrl = 'https://api.openrouteservice.org/v2/directions/driving-car/json';
-        const orsRes = await fetch(orsUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': process.env.ORS_API_KEY,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            coordinates: [pickupLocation, dropLocation]
-          })
-        });
+        // const orsUrl = 'https://api.openrouteservice.org/v2/directions/driving-car/json';
+        // const orsRes = await fetch(orsUrl, {
+        //   method: 'POST',
+        //   headers: {
+        //     'Authorization': process.env.ORS_API_KEY,
+        //     'Content-Type': 'application/json'
+        //   },
+        //   body: JSON.stringify({
+        //     coordinates: [pickupLocation, dropLocation]
+        //   })
+        // });
     
-        const orsData = await orsRes.json();
-        const distanceInKm = orsData.routes[0].summary.distance / 1000;
-        const totalPrice = distanceInKm * vehicle.pricePerKm;
+        // const orsData = await orsRes.json();
+        // const distanceInKm = orsData.routes[0].summary.distance / 1000;
+        // const totalPrice = distanceInKm * vehicle.pricePerKm;
     
         // 🔁 Get addresses
-        const pickupAddress = await getAddressFromCoords(pickupLocation);
-        const dropAddress = await getAddressFromCoords(dropLocation);
+        // const pickupAddress = await getAddressFromCoords(pickupLocation);
+        // const dropAddress = await getAddressFromCoords(dropLocation);
     
         // ✅ Create booking
         bookings.status = 'confirmed'
@@ -146,32 +146,43 @@ const confirmBookings = async(req,res,next)=>{
     🚕 *Booking Confirmed*
     👤 Name: ${name}
     📞 Mobile: ${mobile}
-    📍 Pickup: ${pickupAddress}
-    📍 Drop: ${dropAddress}
-    📏 Distance: ${distanceInKm.toFixed(2)} km
-    💰 Price: ₹${totalPrice.toFixed(2)}
+    📍 Pickup: ${pickupLocation}
+    📍 Drop: ${dropLocation}
+    📏 Distance: ${distance} km
+    💰 Price: ₹${totalPrice}
+    🗓️  Trip Date: ${bookingDate}
     📄 Status: confirmed
         `;
     
         // 📧 Email
-        console.log(user)
+        // console.log(user)
         await sendEmail(user.email, 'Cab Booking Confirmed', message.replace(/\n/g, '<br>'));
         await sendEmail(process.env.ADMIN_EMAIL, 'New Cab Booking', message.replace(/\n/g, '<br>'));
     
         // 💬 WhatsApp
-        await sendWhatsApp(mobile, message);
-        await sendWhatsApp(process.env.ADMIN_MOBILE, message);
+        // await sendWhatsApp(mobile, message);
+        // await sendWhatsApp(process.env.ADMIN_MOBILE, message);
         await bookings.save()
     
         res.status(201).json({
           message: 'Booking confirmed and notifications sent',
-          bookings
         });
     
       } catch (error) {
         console.log(error)
         next(error);
       }
+}
+const getlatestBooking =  async(req,res,next)=>{
+    try {
+        const userId = req.user.id;
+        const latestBooking = await Booking.findOne({user:userId}).sort({createdAt:-1}).limit(1)
+        if(!latestBooking) return next(errorHandler(404,'No booking found'))
+        if(latestBooking.status !== 'pending') return next(errorHandler(404,'No booking found'))
+        res.status(200).json({messge:'Success',latestBooking})
+    } catch (error) {
+        next(error)
+    }
 }
 
 const getAddressFromCoords = async ([lng, lat]) => {
@@ -290,5 +301,6 @@ export default {
     createReview,
     createBookings,
     confirmBookings,
+    getlatestBooking
     
 }

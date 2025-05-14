@@ -7,10 +7,11 @@ const bookingSchema = new mongoose.Schema({
     vehicle: { type: mongoose.Schema.Types.ObjectId, ref: 'vehicle' },
     name:{type:String,default:null},
     mobile:{type:String,default:null},    
-    pickupLocation:{ type: [Number],required: true },
-    dropLocation:{ type: [Number],required: true },
+    pickupLocation:{ type:String,required: true },
+    dropLocation:{ type: String,required: true },
     distance: {type:String,required: true }, // in km
     totalPrice: {type:String,required: true },
+    bookingDate: {type:String,required: true },
     status: { type: String, enum: ['pending', 'confirmed', 'completed', 'cancelled'], default: 'pending' },
     review: { type: mongoose.Schema.Types.ObjectId, ref: 'review', default: null },
     createdAt: { type: Date, default: Date.now }
