@@ -326,7 +326,7 @@ const deleteBooking = async(req,res,next)=>{
   try{
     let {id} = req.params
 
-    let del = await Booking.findByIdAndDelete(id)
+    let del = await Booking.findByIdAndDelete({_id:id})
 
     if(!del) return next(errorHandler(404,"No booking found"))
 
