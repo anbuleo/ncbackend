@@ -13,7 +13,7 @@ import Review from '../models/reviewModel.js';
 const createReview = async (req,res,next)=>{
     try {
         const userId = req.user.id;
-        const {bookingId, rating, comment} = req.body;
+        const {bookingId, rating, comments} = req.body;
 
         const booking = await Booking.findById(bookingId);
         if( !booking || booking.user.toString() !== userId.toString()  ) next(errorHandler(403,'Unauthorized '))
@@ -24,7 +24,7 @@ const createReview = async (req,res,next)=>{
                 user: userId,
                 vehicle: booking.vehicle,
                 rating,
-                comment
+                comments
               });
 
               booking.review = review._id;
