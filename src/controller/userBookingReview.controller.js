@@ -324,9 +324,9 @@ const gettop3review = async(req,res,next)=>{
 
 const deleteBooking = async(req,res,next)=>{
   try{
-    let {bookingId} = req.body
+    let {id} = req.params
 
-    let del = await Booking.findByIdAndDelete(bookingId)
+    let del = await Booking.findByIdAndDelete(id)
 
     if(!del) return next(errorHandler(404,"No booking found"))
 

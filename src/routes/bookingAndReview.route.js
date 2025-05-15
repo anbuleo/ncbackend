@@ -12,7 +12,7 @@ router.put('/sendfeedback',userBookingReviewController.sendFeedbacktomail)
 router.get('/getpending',verifyUser,userBookingReviewController.getlatestBooking)
 router.get('/getreview',verifyUser,userBookingReviewController.getbookingforbookingscreeen)
 router.get('/getallreview',userBookingReviewController.gettop3review)
-router.delete('/cancelbooking',verifyUser,userBookingReviewController.deleteBooking)
+router.delete('/cancelbooking/:id',verifyUser,userBookingReviewController.deleteBooking)
 // router.post('/confirmfcm',userBookingReviewController.confirmationFCM)
 
 // router.use('/review',reviewRoute)
