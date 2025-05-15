@@ -18,7 +18,7 @@ const createReview = async (req,res,next)=>{
         const booking = await Booking.findById(bookingId);
         if( !booking || booking.user.toString() !== userId.toString()  ) next(errorHandler(403,'Unauthorized '))
 
-        if(booking.status === 'completed') next(errorHandler(400,'Can only review completed booking'))
+        if(booking.status !== 'completed') next(errorHandler(400,'Can only review completed booking'))
         
             const review = await Review.create({
                 user: userId,
