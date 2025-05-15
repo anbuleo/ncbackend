@@ -6,8 +6,13 @@ import {verifyUser} from "../utils/verifyUser.js";
 const router = express.Router();
 
 router.post('/create',verifyUser,userBookingReviewController.createBookings)
+router.post('/createreview',verifyUser,userBookingReviewController.createReview)
 router.put('/confirm',verifyUser,userBookingReviewController.confirmBookings)
+router.put('/sendfeedback',userBookingReviewController.sendFeedbacktomail)
 router.get('/getpending',verifyUser,userBookingReviewController.getlatestBooking)
+router.get('/getreview',verifyUser,userBookingReviewController.getbookingforbookingscreeen)
+router.get('/getallreview',userBookingReviewController.gettop3review)
+router.delete('/cancelbooking',verifyUser,userBookingReviewController.gettop3review)
 // router.post('/confirmfcm',userBookingReviewController.confirmationFCM)
 
 // router.use('/review',reviewRoute)

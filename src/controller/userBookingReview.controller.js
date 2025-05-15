@@ -5,6 +5,7 @@ import { errorHandler } from '../utils/errorHandler.js';
 import nodemailer from 'nodemailer';
 import fetch from 'node-fetch'
 import generateOTP from '../utils/generateOtp.js';
+import Review from '../models/reviewModel.js';
 // import admin from '../utils/firebaseAdmin.js';
 
 
@@ -17,7 +18,7 @@ const createReview = async (req,res,next)=>{
         const booking = await Booking.findById(bookingId);
         if( !booking || booking.user.toString() !== userId.toString()  ) next(errorHandler(403,'Unauthorized '))
 
-        if(booking.status === 'pending') next(errorHandler(400,'Can only review completed booking'))
+        if(booking.status === 'completed') next(errorHandler(400,'Can only review completed booking'))
         
             const review = await Review.create({
                 user: userId,
@@ -281,8 +282,87 @@ const getAddressFromCoords = async ([lng, lat]) => {
   //   }
   // }
   
-  
+const getbookingforbookingscreeen = async(req,res,next)=>{
+    try {
+        const userId = req.user.id;
+        const latestBooking =  await Booking.find({ 
+            user: userId, 
+            status: 'confirmed',
+             status: 'completed'
+        })
+        .sort({ createdAt: -1 })
+        .limit(3)
+        .populate('review'); // Populates only if review exists
 
+        if (!latestBooking || latestBooking.length === 0) {
+            return next(errorHandler(404, 'No confirmed bookings found'));
+        }
+        
+        // if(latestBooking.status !== 'pending') return next(errorHandler(404,'No booking found'))
+        res.status(200).json({message:'Success',latestBooking})
+    } catch (error) {
+        next(error)
+    }
+}
+
+const gettop3review = async(req,res,next)=>{
+  try{
+    let review = await Review.find().sort({ createdAt: -1 }).limit(6)
+
+    if(!review || review.length <1) return next(errorHandler(404,"No review found"))
+
+      res.status(200).json({
+        message:"Success",
+        review
+      })
+
+
+  }catch(error){
+    next(error)
+  }
+}
+
+const deleteBooking = async(req,res,next)=>{
+  try{
+    let {bookingId} = req.body
+
+    let del = await Booking.findByIdAndDelete(bookingId)
+
+    if(!del) return next(errorHandler(404,"No booking found"))
+
+    res.status(200).json({
+      message:'Cancelled success'
+    })
+
+  }catch(error){
+    next(error)
+  }
+}
+
+const sendFeedbacktomail = async (req, res, next) => {
+  try {
+    const { email, mobile, name, feedback } = req.body;
+
+    // HTML email content to be received by you (the company)
+    const emailBody = `
+      <h3>New Feedback Received</h3>
+      <p><strong>Name:</strong> ${name}</p>
+      <p><strong>Email:</strong> ${email}</p>
+      <p><strong>Mobile:</strong> ${mobile}</p>
+      <p><strong>Feedback:</strong></p>
+      <p>${feedback}</p>
+    `;
+
+    // Send to your company's email (e.g., your support inbox)
+    await sendEmail(process.env.ADMIN_EMAIL, "New Feedback from User", emailBody);
+
+    res.status(200).json({
+      message: 'Feedback sent successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 
 
@@ -301,6 +381,10 @@ export default {
     createReview,
     createBookings,
     confirmBookings,
-    getlatestBooking
+    getlatestBooking,
+    getbookingforbookingscreeen,
+    gettop3review,
+    deleteBooking,
+    sendFeedbacktomail
     
 }
