@@ -287,8 +287,7 @@ const getbookingforbookingscreeen = async(req,res,next)=>{
         const userId = req.user.id;
         const latestBooking =  await Booking.find({ 
             user: userId, 
-            status: 'confirmed',
-             status: 'completed'
+            status: { $in: ['confirmed', 'completed'] }
         })
         .sort({ createdAt: -1 })
         .limit(3)
