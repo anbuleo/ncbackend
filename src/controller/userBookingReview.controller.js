@@ -304,22 +304,50 @@ const getbookingforbookingscreeen = async(req,res,next)=>{
     }
 }
 
-const gettop3review = async(req,res,next)=>{
-  try{
-    let review = await Review.find().sort({ createdAt: -1 }).limit(6)
+const getTop6Reviews = async (req, res, next) => {
+  try {
+    const reviews = await Review.aggregate([
+      { $sort: { createdAt: -1 } },
+      { $limit: 6 },
+      {
+        $lookup: {
+          from: 'bookings', // collection name in MongoDB (should be plural and lowercase)
+          localField: '_id',
+          foreignField: 'review',
+          as: 'bookingInfo'
+        }
+      },
+      {
+        $unwind: {
+          path: '$bookingInfo',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $project: {
+          rating: 1,
+          comments: 1,
+          createdAt: 1,
+          vehicle: 1,
+          user: 1,
+          bookingName: '$bookingInfo.name'
+        }
+      }
+    ]);
 
-    if(!review || review.length <1) return next(errorHandler(404,"No review found"))
+    if (!reviews || reviews.length === 0) {
+      return next(errorHandler(404, 'No reviews found'));
+    }
 
-      res.status(200).json({
-        message:"Success",
-        review
-      })
-
-
-  }catch(error){
-    next(error)
+    res.status(200).json({
+      message: 'Success',
+      reviews
+    });
+  } catch (error) {
+    next(error);
   }
-}
+};
+
 
 const deleteBooking = async(req,res,next)=>{
   try{
@@ -382,7 +410,7 @@ export default {
     confirmBookings,
     getlatestBooking,
     getbookingforbookingscreeen,
-    gettop3review,
+    getTop6Reviews,
     deleteBooking,
     sendFeedbacktomail
     
