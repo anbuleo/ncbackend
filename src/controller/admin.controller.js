@@ -117,7 +117,6 @@ const filterData = async (req, res, next) => {
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth(); // 0-based
-
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const matchCompleted = { status: "completed" };
     const parsePrice = { $toDouble: "$totalPrice" };
@@ -129,8 +128,8 @@ const filterData = async (req, res, next) => {
       {
         $group: {
           _id: { $year: "$createdAt" },
-          totalBookings: { $sum: 1 },
-          totalEarning: { $sum: parsePrice }
+          bookings: { $sum: 1 },
+          earnings: { $sum: parsePrice }
         }
       }
     ]);
@@ -139,76 +138,68 @@ const filterData = async (req, res, next) => {
     for (let i = currentYear - 4; i <= currentYear; i++) {
       const found = last5YearsRaw.find(y => y._id === i);
       last5Years.push({
-        year: i,
-        totalBookings: found?.totalBookings || 0,
-        totalEarning: found?.totalEarning || 0
+        period: `${i}`,
+        bookings: found?.bookings || 0,
+        earnings: found?.earnings || 0
       });
     }
 
-    // 2. Monthly Stats for Current Year
+    // 2. Monthly Stats
     const yearStart = new Date(currentYear, 0, 1);
     const monthlyStatsRaw = await Book.aggregate([
       { $match: { ...matchCompleted, createdAt: { $gte: yearStart } } },
       {
         $group: {
           _id: { $month: "$createdAt" },
-          totalBookings: { $sum: 1 },
-          totalEarning: { $sum: parsePrice }
+          bookings: { $sum: 1 },
+          earnings: { $sum: parsePrice }
         }
       }
     ]);
 
     const monthlyStats = monthNames.map((name, index) => {
-      const found = monthlyStatsRaw.find(m => m._id === index + 1); // month is 1-based
+      const found = monthlyStatsRaw.find(m => m._id === index + 1); // 1-based
       return {
-        month: name,
-        totalBookings: found?.totalBookings || 0,
-        totalEarning: found?.totalEarning || 0
+        period: name,
+        bookings: found?.bookings || 0,
+        earnings: found?.earnings || 0
       };
     });
 
-    // 3. Weekly Stats (1st to 4th week of current month)
+    // 3. Weekly Stats for Current Month
     const monthStart = new Date(currentYear, currentMonth, 1);
     const nextMonthStart = new Date(currentYear, currentMonth + 1, 1);
 
-    const bookingsInMonth = await Book.aggregate([
+    const weeklyRaw = await Book.aggregate([
       {
         $match: {
           ...matchCompleted,
-          createdAt: {
-            $gte: monthStart,
-            $lt: nextMonthStart
-          }
+          createdAt: { $gte: monthStart, $lt: nextMonthStart }
         }
       },
       {
         $project: {
           totalPrice: parsePrice,
-          weekOfMonth: {
-            $ceil: {
-              $divide: [
-                { $dayOfMonth: "$createdAt" },
-                7
-              ]
-            }
+          week: {
+            $ceil: { $divide: [{ $dayOfMonth: "$createdAt" }, 7] }
           }
         }
       },
       {
         $group: {
-          _id: "$weekOfMonth",
-          totalBookings: { $sum: 1 },
-          totalEarning: { $sum: "$totalPrice" }
+          _id: "$week",
+          bookings: { $sum: 1 },
+          earnings: { $sum: "$totalPrice" }
         }
       }
     ]);
 
     const weeklyStats = [1, 2, 3, 4].map(week => {
-      const found = bookingsInMonth.find(b => b._id === week);
+      const found = weeklyRaw.find(w => w._id === week);
       return {
-        week: `Week ${week}`,
-        totalBookings: found?.totalBookings || 0,
-        totalEarning: found?.totalEarning || 0
+        period: `Week ${week}`,
+        bookings: found?.bookings || 0,
+        earnings: found?.earnings || 0
       };
     });
 
@@ -222,6 +213,8 @@ const filterData = async (req, res, next) => {
     next(error);
   }
 };
+
+
 
 
 export default {
