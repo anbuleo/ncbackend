@@ -108,7 +108,7 @@ const getAllBookings = async(req,res,next)=>{
 }
 
 
-const filterData = async(req,res,next)=>{
+const filterData = async (req, res, next) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Access denied' });
@@ -118,65 +118,111 @@ const filterData = async(req,res,next)=>{
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth(); // 0-based
 
-    // Utility: convert totalPrice string to number (handle cases like "500", "500.00")
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const matchCompleted = { status: "completed" };
     const parsePrice = { $toDouble: "$totalPrice" };
-
-    // 1. Last 5 years (yearly)
-      const matchNonPending = {
-      status: { $ne: "pending" }
-    };
 
     // 1. Last 5 Years
     const fiveYearStart = new Date(currentYear - 4, 0, 1);
-    const last5Years = await Book.aggregate([
-      { $match: { ...matchNonPending, createdAt: { $gte: fiveYearStart } } },
+    const last5YearsRaw = await Book.aggregate([
+      { $match: { ...matchCompleted, createdAt: { $gte: fiveYearStart } } },
       {
         $group: {
           _id: { $year: "$createdAt" },
           totalBookings: { $sum: 1 },
           totalEarning: { $sum: parsePrice }
         }
-      },
-      { $sort: { _id: 1 } }
+      }
     ]);
 
-    // 2. Monthly (Current Year)
+    const last5Years = [];
+    for (let i = currentYear - 4; i <= currentYear; i++) {
+      const found = last5YearsRaw.find(y => y._id === i);
+      last5Years.push({
+        year: i,
+        totalBookings: found?.totalBookings || 0,
+        totalEarning: found?.totalEarning || 0
+      });
+    }
+
+    // 2. Monthly Stats for Current Year
     const yearStart = new Date(currentYear, 0, 1);
-    const monthlyStats = await Book.aggregate([
-      { $match: { ...matchNonPending, createdAt: { $gte: yearStart } } },
+    const monthlyStatsRaw = await Book.aggregate([
+      { $match: { ...matchCompleted, createdAt: { $gte: yearStart } } },
       {
         $group: {
           _id: { $month: "$createdAt" },
           totalBookings: { $sum: 1 },
           totalEarning: { $sum: parsePrice }
         }
-      },
-      { $sort: { _id: 1 } }
+      }
     ]);
 
-    // 3. Weekly (Current Month)
+    const monthlyStats = monthNames.map((name, index) => {
+      const found = monthlyStatsRaw.find(m => m._id === index + 1); // month is 1-based
+      return {
+        month: name,
+        totalBookings: found?.totalBookings || 0,
+        totalEarning: found?.totalEarning || 0
+      };
+    });
+
+    // 3. Weekly Stats (1st to 4th week of current month)
     const monthStart = new Date(currentYear, currentMonth, 1);
-    const weeklyStats = await Book.aggregate([
-      { $match: { ...matchNonPending, createdAt: { $gte: monthStart } } },
+    const nextMonthStart = new Date(currentYear, currentMonth + 1, 1);
+
+    const bookingsInMonth = await Book.aggregate([
       {
-        $group: {
-          _id: { $isoWeek: "$createdAt" },
-          totalBookings: { $sum: 1 },
-          totalEarning: { $sum: parsePrice }
+        $match: {
+          ...matchCompleted,
+          createdAt: {
+            $gte: monthStart,
+            $lt: nextMonthStart
+          }
         }
       },
-      { $sort: { _id: 1 } }
+      {
+        $project: {
+          totalPrice: parsePrice,
+          weekOfMonth: {
+            $ceil: {
+              $divide: [
+                { $dayOfMonth: "$createdAt" },
+                7
+              ]
+            }
+          }
+        }
+      },
+      {
+        $group: {
+          _id: "$weekOfMonth",
+          totalBookings: { $sum: 1 },
+          totalEarning: { $sum: "$totalPrice" }
+        }
+      }
     ]);
-     res.status(200).json({
-      last5Years: last5Years.map(y => ({ year: y._id, ...y })),
-      monthlyStats: monthlyStats.map(m => ({ month: m._id, ...m })),
-      weeklyStats: weeklyStats.map(w => ({ week: w._id, ...w })),
+
+    const weeklyStats = [1, 2, 3, 4].map(week => {
+      const found = bookingsInMonth.find(b => b._id === week);
+      return {
+        week: `Week ${week}`,
+        totalBookings: found?.totalBookings || 0,
+        totalEarning: found?.totalEarning || 0
+      };
+    });
+
+    res.status(200).json({
+      last5Years,
+      monthlyStats,
+      weeklyStats
     });
 
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
+
 
 export default {
     acceptBooking,
