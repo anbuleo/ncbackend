@@ -97,7 +97,7 @@ const getAllBookings = async(req,res,next)=>{
     try{
         let {role} = req.user
         if(role !=="admin")return next(errorHandler(403,"unauthorized"))
-            let bookings = await Book.find({atatus:{$ne:"pending"}}).sort({ createdAt: -1 });
+            let bookings = await Book.find({status:{$ne:"pending"}}).sort({ createdAt: -1 });
         res.status(200).json({
             message:"booking data Success",
             bookings
