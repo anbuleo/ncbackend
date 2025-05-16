@@ -198,7 +198,7 @@ const googlesignup = async(req,res,next)=>{
           });
           let frontendurl = process.env.FEND_URL
       
-          const resetLink = `frontendurl/reset-password/${token}`; // Change URL to your frontend
+          const resetLink = `${frontendurl}/reset-password/${token}`; // Change URL to your frontend
       
           const transporter = nodemailer.createTransport({
             service: "gmail",
