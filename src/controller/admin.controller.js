@@ -63,7 +63,7 @@ const acceptBooking = async(req,res,next)=>{
         let {bookingId} = req.body
         let {role} = req.user
         let booking = await Book.findOne({_id:bookingId})
-        if(!booking || role !=='admin' || booking.status !== 'completed') return next(errorHandler(404,'Not found'))
+        if(!booking || role !=='admin' || booking.status == 'completed') return next(errorHandler(404,'Not found'))
             let {email} = await User.findById({_id:booking?.user})
             
             const message = `
