@@ -157,7 +157,7 @@ const confirmBookings = async(req,res,next)=>{
     
         // 📧 Email
         // console.log(user)
-        await sendEmail(user.email, 'Cab Booking Confirmed', message.replace(/\n/g, '<br>'));
+        // await sendEmail(user.email, 'Cab Booking Confirmed', message.replace(/\n/g, '<br>'));
         await sendEmail(process.env.ADMIN_EMAIL, 'New Cab Booking', message.replace(/\n/g, '<br>'));
     
         // 💬 WhatsApp
@@ -290,7 +290,7 @@ const getbookingforbookingscreeen = async(req,res,next)=>{
             status: { $in: ['confirmed', 'completed'] }
         })
         .sort({ createdAt: -1 })
-        .limit(3)
+        .limit(5)
         .populate('review'); // Populates only if review exists
 
         if (!latestBooking || latestBooking.length === 0) {
