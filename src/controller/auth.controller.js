@@ -5,6 +5,8 @@ import { errorHandler } from '../utils/errorHandler.js';
 import passport from 'passport';
 import crypto from "crypto";
 import nodemailer from "nodemailer";
+import env from 'dotenv'
+env.config()
 
 const otpStore = {};
 let SALT = process.env.SALT
@@ -194,8 +196,9 @@ const googlesignup = async(req,res,next)=>{
           const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
             expiresIn: "15m",
           });
+          let frontendurl = process.env.FEND_URL
       
-          const resetLink = `http://localhost:3000/reset-password/${token}`; // Change URL to your frontend
+          const resetLink = `frontendurl/reset-password/${token}`; // Change URL to your frontend
       
           const transporter = nodemailer.createTransport({
             service: "gmail",
@@ -288,7 +291,7 @@ const googlesignup = async(req,res,next)=>{
             message:'Token verified'
           })
         }catch(error){
-          next(erorr)
+          next(errr)
         }
       }
       

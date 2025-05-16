@@ -13,10 +13,23 @@ const app = express();
 app.use(express.json())
 app.use(bodyParser.json());
 
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://nainaa-cabs.netlify.app',
+  'https://nainaa-cabservice.netlify.app/',
+  'https://nainaa-cabs.com'
+];
+
 app.use(cors({
-    origin: 'http://localhost:3000',
-    credentials: true
-  }));
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 
 let PORT = process.env.PORT || 5000;
 app.use(passport.initialize());
