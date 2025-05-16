@@ -1,6 +1,7 @@
 import { errorHandler } from "../utils/errorHandler.js";
 import Book from "../models/bookingModel.js";
 import nodemailer from 'nodemailer';
+import User from '../models/userModel.js'
 
 
  const sendEmail = async (to, subject, html) => {
