@@ -178,7 +178,7 @@ const getlatestBooking =  async(req,res,next)=>{
     try {
         const userId = req.user.id;
         const latestBooking = await Booking.findOne({user:userId}).sort({createdAt:-1}).limit(1)
-        if(!latestBooking) return next(errorHandler(404,'No booking found'))
+        if(!latestBooking) return next(errorHandler(204,'No booking found'))
         if(latestBooking.status !== 'pending') return next(errorHandler(404,'No booking found'))
         res.status(200).json({messge:'Success',latestBooking})
     } catch (error) {
