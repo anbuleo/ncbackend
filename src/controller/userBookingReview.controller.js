@@ -336,7 +336,7 @@ const getTop6Reviews = async (req, res, next) => {
     ]);
 
     if (!reviews || reviews.length === 0) {
-      return next(errorHandler(404, 'No reviews found'));
+      return next(errorHandler(204, 'No reviews found'));
     }
 
     res.status(200).json({

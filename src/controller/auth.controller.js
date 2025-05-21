@@ -291,7 +291,7 @@ const googlesignup = async(req,res,next)=>{
             message:'Token verified'
           })
         }catch(error){
-          next(errr)
+          next(error)
         }
       }
       
