@@ -67,16 +67,16 @@ const acceptBooking = async(req,res,next)=>{
             let {email} = await User.findById({_id:booking?.user})
             
             const message = `
-    🚕 *Booking Confirmed*
+    🚕 <b>*Booking Confirmed*</b>
     👤 Name: ${booking?.name}
-    📞 Mobile: ${booking?.mobile}
-    📍 Pickup: ${booking?.pickupLocation}
-    📍 Drop: ${booking?.dropLocation}
+    📞 Mobile: ${booking?.mobile} 
+    📍 Pickup: ${booking?.pickupLocation} 
+    📍 Drop: ${booking?.dropLocation} 
     📏 Distance: ${booking?.distance} km
     💰 Price: ₹${booking?.totalPrice}
     🗓️  Trip Date: ${booking?.bookingDate}
-    📄 Status: confirmed
-    note: Estimated fare is based on above metioned km only
+    📄 Status: confirmed 
+    Note: <span style="color:red">The cost is an rough estimate based on the mentioned kilometers and will vary with extra distance travelled.</span>
         `;
         booking.status = "completed"
         await sendEmail(email, 'Cab Booking Confirmed', message.replace(/\n/g, '<br>'));
