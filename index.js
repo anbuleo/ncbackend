@@ -17,6 +17,8 @@ const allowedOrigins = [
   'http://localhost:3000',
   'https://nainaa-cabs.netlify.app',
   'https://nainaa-cabservice.netlify.app/',
+  'https://anandham-cabs.com',
+  'https://anandham-cabs.com/',
   'https://nainaa-cabs.com'
 ];
 
