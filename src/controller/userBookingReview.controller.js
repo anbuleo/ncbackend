@@ -216,7 +216,7 @@ const getAddressFromCoords = async ([lng, lat]) => {
     });
   
     await transporter.sendMail({
-      from: `"Nainna Cabs" <${process.env.EMAIL_USER}>`,
+      from: `"ANANDAM-CABS" <${process.env.EMAIL_USER}>`,
       to,
       subject,
       html
